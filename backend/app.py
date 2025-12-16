@@ -31,6 +31,17 @@ def register():
 
     return jsonify({"message": "Registration successful"}) # -> Sends response back to Vue
 
+@app.route("/login", methods=["POST"])
+def login():
+    data = request.json
+
+    user = User.query.filter_by(username=data["username"]).first() # -> find user by username in Database
+
+    if user and user.password == data["password"]: # -> check user exists & password matches
+        session["user_id"] = user.id # ->"" Creates a session for logged in user, flask stores user ID, Browser stores a cookie, User is now logged in
+        return jsonify({"message": "Login successful"})
+    
+    return jsonify({"error": "Invalid username or password"}), 401
 
 
 """sumary_line
