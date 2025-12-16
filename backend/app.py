@@ -3,7 +3,7 @@ from flask import request, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 
-from models import db
+from models import db, User
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True) # -> allows cookies to be sent cross-origin
@@ -13,3 +13,30 @@ app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///users.db" # -> creates a file
 
 # db = SQLAlchemy(app)
 db.init_app(app) # -> initialize the db with the app
+
+@app.route("/register", methods=["POST"])
+def register():
+    data = request.json # -> Vue sends JSON data
+
+    if User.query.filter_by(username=data["username"]).first(): # -> check if user exists to prevent duplicate accounts
+        return jsonify({"error": "User already exists"}), 400
+
+    new_user = User(
+        username=data["username"], 
+        password=data["password"]
+        ) # -> create new user instance
+    
+    db.session.add(new_user) # -> prepare to save
+    db.session.commit() # -> save to database
+
+    return jsonify({"message": "Registration successful"}) # -> Sends response back to Vue
+
+
+
+"""sumary_line
+
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+    app.run(debug=True)
+"""
